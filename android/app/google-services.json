@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "361074832941",
+    "project_id": "sukhji-platform",
+    "storage_bucket": "sukhji-platform.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:361074832941:android:97a33417a06d01930deaa4",
+        "android_client_info": {
+          "package_name": "com.starwish.mandla_local"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBKUJqCowbqrGxwVmjnSLYJYrc2ujh_gFg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:361074832941:android:445d76f459827e740deaa4",
+        "android_client_info": {
+          "package_name": "com.starwish.sukjhi"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBKUJqCowbqrGxwVmjnSLYJYrc2ujh_gFg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
