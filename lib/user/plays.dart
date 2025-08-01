@@ -75,12 +75,6 @@ class PlayCards extends StatelessWidget {
   Widget build(BuildContext context) {
     double w=MediaQuery.of(context).size.width;
     return InkWell(
-      onTap: (){
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => QuizScreen(questions: quiz.questions,)),
-        );
-      },
       child: Card(
         elevation: 4,
         color: Colors.white,
@@ -112,9 +106,6 @@ class PlayCards extends StatelessWidget {
                   Text("Negative : "),
                   Text(quiz.negativeMarks.toStringAsFixed(1),style: TextStyle(color: Colors.red),),
                   SizedBox(width: 5,),
-                  Text("Skip : "),
-                  Text(quiz.noSkip.toString(),style: TextStyle(color: Colors.blue),),
-                  SizedBox(width: 5,),
                   Text("Questions : "),
                   Text(quiz.questions.length.toString(),style: TextStyle(color: Colors.orange),),
                 ],
@@ -123,81 +114,6 @@ class PlayCards extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-
-class QuizScreen extends StatelessWidget {
-  final List<QuizQuestion> questions;
-
-  const QuizScreen({Key? key, required this.questions}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        iconTheme: IconThemeData(
-            color: Colors.white
-        ),
-        backgroundColor: Send.bg,
-        automaticallyImplyLeading: true,
-        title: const Text('Quiz Questions & Answers',style: TextStyle(color: Colors.white),),
-      ),
-      body: ListView.builder(
-        itemCount: questions.length,
-        itemBuilder: (context, index) {
-          final question = questions[index];
-          return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Q${index + 1}: ${question.question}",
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: question.options.length,
-                      itemBuilder: (context, optionIndex) {
-                        final isCorrect = optionIndex == question.correctOption;
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4.0),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: isCorrect ? Colors.green[200] : Colors.white,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: isCorrect ? Colors.green : Colors.grey,
-                              ),
-                            ),
-                            child: ListTile(
-                              title: Text(question.options[optionIndex]),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
       ),
     );
   }

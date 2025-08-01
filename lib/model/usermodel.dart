@@ -29,6 +29,8 @@ class UserModel {
     required this.amount,
     required this.withdrawal,
     required this.win,
+    required this.prizepoints,
+    required this.prizewins
   });
 
   late final String token;
@@ -59,7 +61,12 @@ class UserModel {
   late final double withdrawal;
   late final double win;
 
+  late final double prizewins;
+  late final double prizepoints;
+
   UserModel.fromJson(Map<String, dynamic> json) {
+    prizewins=json['prizewins']??0.0;
+    prizepoints = json['prizepoints']??0.0;
     token = json['token'] ?? "h";
     lastlogin = json['lastlogin'] ?? "2024-06-01 19:14:41.231388";
     online = json['online'] ?? false;
@@ -84,13 +91,16 @@ class UserModel {
     facebook = json['facebook'] ?? 'https://www.facebook.com/ayusmansamasi';
     youtube = json['youtube'] ?? '';
     instagram = json['instagram'] ?? '';
-    amount = (json['amount'] ?? 0.0).toDouble();
+    amount = (json['amount'] is num) ? (json['amount'] as num).toDouble() : 0.0;
+
     withdrawal = (json['withdrawal'] ?? 0.0).toDouble();
     win = (json['win'] ?? 0.0).toDouble();
   }
 
   Map<String, dynamic> toJson() {
     final data = <String, dynamic>{};
+    data['prizepoints']=prizepoints;
+    data['prizewins']=prizewins;
     data['Followers'] = follower;
     data['following'] = following;
     data['country'] = country;

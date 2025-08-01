@@ -1,4 +1,4 @@
-package com.starwish.sukhji
+package com.starwish.sukjhi
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -18,6 +18,8 @@ import 'package:ignou_bscg/quiz/home/small_card.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
+import '../../ai/generate_Quiz.dart';
+import '../../game/all_games.dart';
 import '../../model/quiz_type.dart';
 
 class AdminNavigation extends StatefulWidget {
@@ -35,8 +37,6 @@ class _AdminNavigationState extends State<AdminNavigation> {
     'https://static.vecteezy.com/system/resources/thumbnails/021/179/141/small_2x/banknote-silver-coins-and-gold-coins-bounce-concept-banner-design-on-orange-background-vector.jpg',
     'https://png.pngtree.com/thumb_back/fh260/back_our/20190621/ourmid/pngtree-financial-management-making-money-cornucopia-poster-banner-image_185679.jpg',
     'https://media.licdn.com/dms/image/v2/C4D12AQHEpumsDGLhbw/article-cover_image-shrink_720_1280/article-cover_image-shrink_720_1280/0/1635691150147?e=2147483647&v=beta&t=_ZKDcDTiIjXfsNNYBbvVV_kUOWyNrkcpwROl6b4T1RE',
-
-
   ];
 
   TextEditingController text=TextEditingController();
@@ -252,7 +252,7 @@ class _AdminNavigationState extends State<AdminNavigation> {
                         ),
                         Positioned(child: IconButton(onPressed:(){
                           deleteImage(imageUrl);
-                        }, icon: Icon(Icons.delete,color: Colors.white,)))
+                        }, icon: Icon(Icons.delete,color: Colors.red,)))
                       ],
                     );
                   }).toList(),
@@ -296,7 +296,7 @@ class _AdminNavigationState extends State<AdminNavigation> {
                   }
                 },
                 child: Center(child: Send.see(w, "Upload Banner",Icon(Icons.upload,color: Colors.white,)))),
-            SizedBox(height: 20,),
+            SizedBox(height: 10,),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [

@@ -45,51 +45,57 @@ class AllUser extends StatelessWidget {
                 physics: const BouncingScrollPhysics(),
                 itemBuilder: (context, index) {
                   final user = users[index];
+
                   return Card(
                     elevation: 4,
                     margin: const EdgeInsets.symmetric(vertical: 8),
-                    child: Container(
-                      width: w,
-                      child: Column(
-                        children: [
-                          ListTile(
-                            leading: CircleAvatar(
-                              backgroundImage: NetworkImage(user.pic),
+                    child: InkWell(
+                      onTap: () async {
+                        await FirebaseFirestore.instance.collection('users').doc(user.uid).delete();
+                      },
+                      child: Container(
+                        width: w,
+                        child: Column(
+                          children: [
+                            ListTile(
+                              leading: CircleAvatar(
+                                backgroundImage: NetworkImage(user.pic),
+                              ),
+                              title: Text(user.Name),
+                              subtitle: Text(user.Email),
+                              trailing: Text("₹"+user.amount.toString(),style: TextStyle(fontWeight: FontWeight.w800),),
                             ),
-                            title: Text(user.Name),
-                            subtitle: Text(user.Email),
-                            trailing: Text("₹"+user.amount.toString(),style: TextStyle(fontWeight: FontWeight.w800),),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 18.0,right: 18),
-                            child: Row(
-                              children: [
-                                InkWell(
-                                    onTap:(){
-                                      Navigator.push(context, MaterialPageRoute(builder: (context) => Transactions(name: user.Name, id: user.uid,)));
-                                    },
-                                    child: Icon(Icons.volunteer_activism_sharp,color: Colors.blue,)),
-                                InkWell(
-                                    onTap:(){
-                                      Navigator.push(context, MaterialPageRoute(builder: (context) => Transactions(name: user.Name, id: user.uid,)));
-                                    },
-                                    child: Text("See Transactions",style: TextStyle(fontWeight: FontWeight.w600,color: Colors.blue),)),
-                                Spacer(),
-                                InkWell(
-                                    onTap:(){
-                                      Navigator.push(context, MaterialPageRoute(builder: (context) => Plays(name: user.Name, id: user.uid,)));
-                                    },
-                                    child: Icon(Icons.person,color: Colors.blue,)),
-                                InkWell(
-                                    onTap:(){
-                                      Navigator.push(context, MaterialPageRoute(builder: (context) => Plays(name: user.Name, id: user.uid,)));
-                                    },
-                                    child: Text("See Plays",style: TextStyle(fontWeight: FontWeight.w600,color: Colors.blue),)),
-                              ],
+                            Padding(
+                              padding: const EdgeInsets.only(left: 18.0,right: 18),
+                              child: Row(
+                                children: [
+                                  InkWell(
+                                      onTap:(){
+                                        Navigator.push(context, MaterialPageRoute(builder: (context) => Transactions(name: user.Name, id: user.uid,)));
+                                      },
+                                      child: Icon(Icons.volunteer_activism_sharp,color: Colors.blue,)),
+                                  InkWell(
+                                      onTap:(){
+                                        Navigator.push(context, MaterialPageRoute(builder: (context) => Transactions(name: user.Name, id: user.uid,)));
+                                      },
+                                      child: Text("See Transactions",style: TextStyle(fontWeight: FontWeight.w600,color: Colors.blue),)),
+                                  Spacer(),
+                                  InkWell(
+                                      onTap:(){
+                                        Navigator.push(context, MaterialPageRoute(builder: (context) => Plays(name: user.Name, id: user.uid,)));
+                                      },
+                                      child: Icon(Icons.person,color: Colors.blue,)),
+                                  InkWell(
+                                      onTap:(){
+                                        Navigator.push(context, MaterialPageRoute(builder: (context) => Plays(name: user.Name, id: user.uid,)));
+                                      },
+                                      child: Text("See Plays",style: TextStyle(fontWeight: FontWeight.w600,color: Colors.blue),)),
+                                ],
+                              ),
                             ),
-                          ),
-                          SizedBox(height: 12,)
-                        ],
+                            SizedBox(height: 12,)
+                          ],
+                        ),
                       ),
                     ),
                   );
@@ -100,6 +106,11 @@ class AllUser extends StatelessWidget {
       ),
 
     );
+  }
+  Future<void> a(UserModel user) async {
+    await FirebaseFirestore.instance.collection("users").doc(user.uid).update({
+      "amount":"infdifdiko",
+    });
   }
 }
 

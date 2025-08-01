@@ -28,9 +28,6 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
     });
     String otp = _otpController.text.trim();
     if (otp.isEmpty || otp.length != 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Enter a valid 6-digit OTP")),
-      );
       setState(() {
         on=false;
       });
@@ -42,8 +39,19 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
         verificationId: widget.verificationId,
         smsCode: otp,
       );
-      UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
-      String uid=userCredential.user!.uid;
+      print("--------------------------------------");
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      print("---ss");
+      final user = userCredential.user;
+      if (user == null) {
+        print("Sign-in failed: user is null");
+        if (mounted) setState(() => on = false);
+        Send.message(context, "Sign-in failed. Try again.", false);
+        return;
+      }
+      String uid = user.uid;
+      print("--------------------------------------$uid");
+
       try {
         CollectionReference usersCollection = FirebaseFirestore.instance.collection('users');
         QuerySnapshot querySnapshot = await usersCollection.where('uid', isEqualTo:uid).get();
@@ -51,10 +59,14 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
           setState(() {
             on=false;
           });
+          print("---------------------------SS-----------");
+
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Splash()));
           Send.message(context,"Login successful",true);
         } else {
           try{
+            print("----------------CC----------------------");
+
             UserModel useer=UserModel(
                 Email: widget.phonenumber, Name:"", uid: uid,
                 bday: "", education: "", gender: "",
@@ -63,7 +75,7 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
                 online: false, follower: [], following: [],
                 stu: [], live: [], hour: 0.0, cl: [], stLive: [],
                 facebook: "", youtube: "", instagram: "",
-                token: "", amount: 0.0, withdrawal: 0.0, win: 0.0);
+                token: "", amount: 0.0, withdrawal: 0.0, win: 0.0, prizepoints : 0.0, prizewins: 0.0);
             await FirebaseFirestore.instance.collection("users").doc(uid).set(useer.toJson());
             Send.message(context,"New Account Created",true);
             setState(() {
@@ -71,6 +83,8 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
             });
             Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => UserProfile(isback: false, user: useer,)));
           }catch(e){
+            print("--------------------------------------E");
+
             setState(() {
               on=false;
             });
@@ -81,12 +95,16 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
         setState(() {
           on=false;
         });
+        print("E--------------------------------------");
+
         Send.message(context,"$e",true);
       }
     } catch (e) {
       setState(() {
         on=false;
       });
+      print("------------EEEE--------------------------");
+
       Send.message(context,"$e", false);
     }
   }

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_datetime_picker_bdaya/flutter_datetime_picker_bdaya.dart';
+import 'package:ignou_bscg/function/notify_all.dart';
 import 'package:ignou_bscg/global/send.dart';
 import 'package:ignou_bscg/model/quiz_type.dart';
 import 'package:ignou_bscg/quiz/home/open_quiz.dart';
@@ -192,7 +193,7 @@ class _AddQuizIdState extends State<AddQuizId> {
                   return ;
                 }
                 if(name.text.isEmpty){
-                  Send.message(context, "Date not choosen", false);
+                  Send.message(context, "Description not Written", false);
                   return ;
                 }
                 String id = getr(s);
@@ -214,8 +215,11 @@ class _AddQuizIdState extends State<AddQuizId> {
                     instruction: instructions.text, marks: hj,
                     qName: names.text, winning: winning.text, questions: [], spots: spots, registered: [], price: pri);
                 await FirebaseFirestore.instance.collection("Quiz").doc(id).set(quizz.toJson());
+                notifyall(id);
+                sendtofirebase(id);
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (context) => OpenQuiz(quiz: quizz, admin: true,)));
                 Send.message(context, "Created", false);
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => OpenQuiz(quiz: quizz, admin: true,)));
               }catch(e){
                 Send.message(context, "$e", false);
               }
@@ -223,6 +227,41 @@ class _AddQuizIdState extends State<AddQuizId> {
             child: Send.se(w, "Save & Continue"))),
       ],
     );
+  }
+
+  void sendtofirebase(String idi){
+    DateTime targetDateTime = DateTime.parse(s);
+    DateTime finalDateTime = DateTime(
+      targetDateTime.year,
+      targetDateTime.month,
+      targetDateTime.day,
+      int.parse(ordernumber), // your selected hour (e.g., 20 for 8 PM)
+    );
+    FirebaseFirestore.instance.collection('scheduled_classes').add({
+      'title': '${names.text} Quiz Sheduled at ${day(idi)}',
+      'description': 'Quiz will start Soon. Sukhji Platform will host Quiz on ${names.text} at ${day(idi)}',
+      'targetDate': Timestamp.fromDate(finalDateTime), // Scheduled time
+    });
+    print("Sent");
+  }
+
+  void notifyall(String idi){
+    NotifyAll.sendNotifications("${names.text} Quiz Sheduled at ${day(idi)}", "Sukhji Platform will host Quiz on ${names.text} at ${day(idi)}");
+  }
+
+  String day(idi){
+    try {
+      DateTime quizDateTime = DateTime.parse(idi);
+      if(quizDateTime.hour<12){
+        return quizDateTime.hour.toString() + ":00 AM";
+      }
+      if(quizDateTime.hour==12){
+        return quizDateTime.hour.toString() + ":00 PM";
+      }
+      return (quizDateTime.hour - 12 ).toString() + ":00 PM";
+    }catch(e){
+      return "10:00 AM";
+    }
   }
   int hj=2;
   Widget r12(double w,int yi)=>InkWell(

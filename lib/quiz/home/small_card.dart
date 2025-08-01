@@ -16,27 +16,48 @@ import 'package:provider/provider.dart';
 import 'package:simple_progress_indicators/simple_progress_indicators.dart';
 import 'package:slide_countdown/slide_countdown.dart';
 
-class ChatUser extends StatelessWidget {
+class ChatUser extends StatefulWidget {
   QuizTypeModel quiz;bool isadmin;int review;
   ChatUser({super.key,required this.quiz,required this.isadmin, this.review=0});
 
-  String day(){
+  @override
+  State<ChatUser> createState() => _ChatUserState();
+}
+
+class _ChatUserState extends State<ChatUser> {
+
+  String day() {
     try {
-      DateTime quizDateTime = DateTime.parse(quiz.id);
-      if(quizDateTime.hour<12){
-        return quizDateTime.hour.toString() + ":00 AM";
+      DateTime quizDateTime = DateTime.parse(widget.quiz.id);
+      DateTime now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final quizDateOnly = DateTime(quizDateTime.year, quizDateTime.month, quizDateTime.day);
+
+      // Format hour in 12-hour with AM/PM
+      int hour = quizDateTime.hour;
+      String suffix = hour >= 12 ? "PM" : "AM";
+      if (hour == 0) hour = 12;
+      else if (hour > 12) hour -= 12;
+
+      String timeStr = '$hour:00 $suffix';
+
+      if (quizDateOnly.isAtSameMomentAs(today)) {
+        // Only time for today
+        return timeStr;
+      } else {
+        // Time + date for future
+        String dateStr = '${quizDateTime.day.toString().padLeft(2, '0')}/${quizDateTime.month.toString().padLeft(2, '0')}/${quizDateTime.year.toString().substring(2)}';
+        return '$timeStr on $dateStr';
       }
-      if(quizDateTime.hour==12){
-        return quizDateTime.hour.toString() + ":00 PM";
-      }
-      return (quizDateTime.hour - 12 ).toString() + ":00 PM";
-    }catch(e){
+    } catch (e) {
       return "10:00 AM";
     }
   }
+
+
   String dayend(){
     try {
-      DateTime quizDateTime = DateTime.parse(quiz.id);
+      DateTime quizDateTime = DateTime.parse(widget.quiz.id);
       if(quizDateTime.hour<12){
         return quizDateTime.hour.toString() + ":30 AM";
       }
@@ -48,6 +69,7 @@ class ChatUser extends StatelessWidget {
       return "10:30 AM";
     }
   }
+
   h(BuildContext context) async {
     try {
       final _userprovider = Provider.of<UserProvider>(context, listen: false);
@@ -56,18 +78,19 @@ class ChatUser extends StatelessWidget {
 
     }
   }
+
   sendd() async {
     try {
       String str = DateTime.now().toString();
       TransactionModel tran = TransactionModel(answer: true,
-          name: quiz.qName,
+          name: widget.quiz.qName,
           method: "",
-          rupees: quiz.price.toDouble(),
+          rupees: widget.quiz.price.toDouble(),
           pay: true,
           status: "Debited",
-          coins: quiz.price.toInt(),
+          coins: widget.quiz.price.toInt(),
           time: str,
-          time2: quiz.id,
+          time2: widget.quiz.id,
           nameUid: "Transaction Debited",
           id: str,
           pic: "",
@@ -84,7 +107,7 @@ class ChatUser extends StatelessWidget {
 
   String checks() {
     try {
-      final quizDateTime = DateTime.parse(quiz.id);
+      final quizDateTime = DateTime.parse(widget.quiz.id);
       final now = DateTime.now();
       final difference = now.difference(quizDateTime).inMinutes;
 
@@ -113,11 +136,11 @@ class ChatUser extends StatelessWidget {
           .collection("users")
           .doc(_user.uid)
           .update({
-        "amount": FieldValue.increment(-quiz.price),
+        "amount": FieldValue.increment(-widget.quiz.price),
       });
 
       // Update registered users in Quiz collection
-      await FirebaseFirestore.instance.collection("Quiz").doc(quiz.id).update({
+      await FirebaseFirestore.instance.collection("Quiz").doc(widget.quiz.id).update({
         "registered": FieldValue.arrayUnion([FirebaseAuth.instance.currentUser!.uid]),
       });
 
@@ -181,7 +204,24 @@ class ChatUser extends StatelessWidget {
     );
   }
 
+  void initState(){
+    fetch();
+  }
 
+  fetch() async {
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('Quiz').doc(widget.quiz.id).collection("Quizes")
+        .get();
+
+    int documentCount = querySnapshot.docs.length;
+
+    print("Total documents: $documentCount");
+    setState(() {
+      goti=documentCount;
+    });
+  }
+
+  int goti = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -191,14 +231,14 @@ class ChatUser extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 3.0),
       child: Center(
         child: InkWell(
-          onLongPress: (){
-            if(isadmin){
-              Navigator.push(context, MaterialPageRoute(builder: (context) => UpdateQuizId(quiz: quiz,)));
+          onLongPress: () async{
+            if(widget.isadmin){
+              Navigator.push(context, MaterialPageRoute(builder: (context) => UpdateQuizId(quiz: widget.quiz,)));
             }
           },
           onTap: (){
-            if(isadmin){
-              Navigator.push(context, MaterialPageRoute(builder: (context) => OpenQuiz(quiz: quiz,admin: isadmin,review: review,)));
+            if(widget.isadmin){
+              Navigator.push(context, MaterialPageRoute(builder: (context) => OpenQuiz(quiz: widget.quiz,admin: widget.isadmin,review: widget.review,)));
             }else if(checks()=="Yes"){
               showModalBottomSheet(
                 context: context,
@@ -226,8 +266,8 @@ class ChatUser extends StatelessWidget {
                 },
               );
               return ;
-            }else if((quiz.registered.contains(FirebaseAuth.instance.currentUser!.uid)||("Quiz Overed"==r456757()))){
-              Navigator.push(context, MaterialPageRoute(builder: (context) => OpenQuiz(quiz: quiz,admin: isadmin,review: review,)));
+            }else if((widget.quiz.registered.contains(FirebaseAuth.instance.currentUser!.uid)||("Quiz Overed"==r456757()))){
+              Navigator.push(context, MaterialPageRoute(builder: (context) => OpenQuiz(quiz: widget.quiz,admin: widget.isadmin,review: widget.review,)));
             }else{
               showModalBottomSheet(
                 context: context,
@@ -240,24 +280,24 @@ class ChatUser extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          '₹${quiz.price}',
+                          '₹${widget.quiz.price}',
                           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold,color: Colors.black),
                         ),
-                        QuizCountdown(quizId: quiz.id),
+                        QuizCountdown(quizId: widget.quiz.id),
                         SizedBox(height: 10),
                         Padding(
                           padding: const EdgeInsets.only(left: 18.0,right: 18),
-                          child: Text('Pay ₹${quiz.price} to Enter this Quiz and fight with Participants',textAlign: TextAlign.center,),
+                          child: Text('Pay ₹${widget.quiz.price} to Enter this Quiz and fight with Participants',textAlign: TextAlign.center,),
                         ),
                         SizedBox(height: 20),
                         InkWell(
                             onTap: () async {
                               try {
-                                if (_user == null || quiz == null) {
+                                if (_user == null || widget.quiz == null) {
                                   Send.message(context, "Unexpected error occurred. Please try again.", false);
                                   return;
                                 }
-                                if (_user!.amount >= quiz.price) {
+                                if (_user!.amount >= widget.quiz.price) {
                                   // Deduct money and update Firestore
                                   Navigator.pop(context);
                                   f(context, _user);
@@ -292,7 +332,7 @@ class ChatUser extends StatelessWidget {
               children:[
                 SizedBox(height: 10,),
                 Text("${day()} Quiz",style: TextStyle(fontWeight: FontWeight.w700,fontSize: w/38),),
-                Text("${quiz.qName} : Questions = ${quiz.questions.length}",style: TextStyle(fontWeight: FontWeight.w800,fontSize: w/28),),
+                Text("${widget.quiz.qName} : Questions = ${goti}",style: TextStyle(fontWeight: FontWeight.w800,fontSize: w/28),),
                 Text("Negative Marking : 1/3",style: TextStyle(fontWeight: FontWeight.w400,fontSize: w/40),),
                 SizedBox(height: 8,),
                 Container(
@@ -306,7 +346,7 @@ class ChatUser extends StatelessWidget {
                           Icon(Icons.diamond,color: Colors.white,size: 20,),
                           SizedBox(width: 7,),
                           Text("Winning Prize : ",style: TextStyle(fontWeight: FontWeight.w400,fontSize: w/35,color: Colors.white),),
-                          Text("₹ ${quiz.winning}",style: TextStyle(fontWeight: FontWeight.w900,fontSize: w/35,color: Colors.white),),
+                          Text("₹ ${widget.quiz.winning}",style: TextStyle(fontWeight: FontWeight.w900,fontSize: w/35,color: Colors.white),),
                         ],
                       ),
                     )),
@@ -324,7 +364,7 @@ class ChatUser extends StatelessWidget {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text("${quiz.registered.length.toString()} Registered",style: TextStyle(fontWeight: FontWeight.w400,fontSize: w/40,color: Colors.red),),
+                                  Text("${widget.quiz.registered.length.toString()} Registered",style: TextStyle(fontWeight: FontWeight.w400,fontSize: w/40,color: Colors.red),),
                                   Spacer(),
                                   Text("${y()} Spot Left",style: TextStyle(fontWeight: FontWeight.w400,fontSize: w/40,color: Colors.indigo),),
                                 ],
@@ -336,7 +376,7 @@ class ChatUser extends StatelessWidget {
                               child: Padding(
                                 padding: const EdgeInsets.only(left: 15.0,right: 15),
                                 child: ProgressBar(
-                                  value: (quiz.registered.length/quiz.spots),
+                                  value: (widget.quiz.registered.length/widget.quiz.spots),
                                   height: 5,
                                   color: Colors.red,backgroundColor: Colors.grey.shade200,
                                 ),
@@ -352,7 +392,7 @@ class ChatUser extends StatelessWidget {
                         ),
                         child: Padding(
                           padding: const EdgeInsets.only(left: 10.0,right: 10,top: 4,bottom: 4),
-                          child: Text("₹ ${quiz.price}",style: TextStyle(color: Colors.white),),
+                          child: Text("₹ ${widget.quiz.price}",style: TextStyle(color: Colors.white),),
                         ),
                       )
                     ],
@@ -368,7 +408,7 @@ class ChatUser extends StatelessWidget {
                       children: [
                         Text("${day()}",style: TextStyle(fontWeight: FontWeight.w400,fontSize: w/40),),
                         Spacer(),
-                        !se()?check():QuizCountdown(quizId: quiz.id),
+                        !se()?check():QuizCountdown(quizId: widget.quiz.id),
                       ],
                     ),
                   ),
@@ -379,7 +419,7 @@ class ChatUser extends StatelessWidget {
                       onTap: (){
                         Navigator.push(context, MaterialPageRoute(
                             builder: (context) =>
-                                InstructionConduction(quiz: quiz,on: true,)));
+                                InstructionConduction(quiz: widget.quiz,on: true,)));
                       },
                       child: Padding(
                         padding: const EdgeInsets.only(left: 8.0,right: 8),
@@ -413,7 +453,7 @@ class ChatUser extends StatelessWidget {
       if(se()){
         return "None";
       }
-      final quizDateTime = DateTime.parse(quiz.id);
+      final quizDateTime = DateTime.parse(widget.quiz.id);
       final now = DateTime.now();
       final difference = now.difference(quizDateTime).inMinutes;
       print("gfvbbbbv");
@@ -429,7 +469,7 @@ class ChatUser extends StatelessWidget {
 
   Widget check() {
     try {
-      final quizDateTime = DateTime.parse(quiz.id);
+      final quizDateTime = DateTime.parse(widget.quiz.id);
       final now = DateTime.now();
       final difference = now.difference(quizDateTime).inMinutes;
       print("gfvbbbbv");
@@ -454,10 +494,9 @@ class ChatUser extends StatelessWidget {
     }
   }
 
-
   bool se() {
     try {
-      final quizDateTime = DateTime.parse(quiz.id);
+      final quizDateTime = DateTime.parse(widget.quiz.id);
       final now = DateTime.now();
       final difference = now.difference(quizDateTime).inMinutes;
       if (quizDateTime.isAfter(now)) {
@@ -468,17 +507,19 @@ class ChatUser extends StatelessWidget {
       return false;
     }
   }
+
   String y(){
-    print((quiz.registered.length/quiz.spots));
-    int ui=quiz.spots - quiz.registered.length;
+    print((widget.quiz.registered.length/widget.quiz.spots));
+    int ui=widget.quiz.spots - widget.quiz.registered.length;
     if(ui.isNegative){
       return "0";
     }
     return "$ui";
   }
+
   String declare(){
     try {
-      DateTime quizDateTime = DateTime.parse(quiz.id);
+      DateTime quizDateTime = DateTime.parse(widget.quiz.id);
       if(quizDateTime.hour<12){
         return quizDateTime.hour.toString() + ":30 AM";
       }
@@ -490,9 +531,10 @@ class ChatUser extends StatelessWidget {
       return "10:30 AM";
     }
   }
+
   String send() {
     try {
-      DateTime quizDateTime = DateTime.parse(quiz.id);
+      DateTime quizDateTime = DateTime.parse(widget.quiz.id);
       DateTime now = DateTime.now();
 
       // Calculate the difference as a Duration
@@ -516,7 +558,6 @@ class ChatUser extends StatelessWidget {
       return "Quiz ended on 10:00";
     }
   }
-
 }
 class QuizCountdown extends StatelessWidget {
   final String quizId; // Assume this is a datetime string like "2025-03-07 14:00:00"

@@ -38,7 +38,8 @@ class TransactionModel {
     rupees = json['rupees']?.toDouble() ?? 0.0;
     pay = json['pay'] ?? false;
     status = json['status'] ?? '';
-    coins = json['coins'] ?? 0;
+     coins = (json['coins'] is int) ? json['coins'] : 0;
+
     time = json['time'] ?? '';
     time2 = json['time2'] ?? '';
     nameUid = json['nameUid'] ?? '';

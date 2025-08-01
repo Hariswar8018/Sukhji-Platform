@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ignou_bscg/global/send.dart';
 import 'package:ignou_bscg/model/quiz_type.dart';
@@ -19,11 +20,25 @@ class _InstructionConductionState extends State<InstructionConduction> {
   late int remainingTime;
   late Timer countdownTimer;
 
+  fetch() async {
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('Quiz').doc(widget.quiz.id).collection("Quizes")
+        .get();
+
+    int documentCount = querySnapshot.docs.length;
+
+    print("Total documents: $documentCount");
+    setState(() {
+      goti=documentCount;
+    });
+  }
+
+  int goti = 0;
   @override
   void initState() {
   super.initState();
   remainingTime = 30; // Start from 30 seconds
-
+  fetch();
   if(widget.on){
     return ;
   }
@@ -103,7 +118,7 @@ class _InstructionConductionState extends State<InstructionConduction> {
                   ),
                   children: [
                     TextSpan(
-                      text: widget.quiz.questions.length.toString(), // Dynamic part
+                      text: goti.toString(), // Dynamic part
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,

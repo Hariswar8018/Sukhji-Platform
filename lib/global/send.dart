@@ -34,6 +34,62 @@ class Send{
       ),
     );
   }
+static Widget editor(TextEditingController _controller,double w,String str, bool number){
+    return  Center(
+      child: Container(
+        width: w,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(7),
+          border: Border.all(color: Colors.grey.shade300, width: 2),
+        ),
+        alignment: Alignment.center,
+        child: Padding(
+          padding: const EdgeInsets.only(left: 16,top: 8.0,bottom: 8,right: 16),
+          child: TextField(
+            minLines: 1,maxLines: 1,
+            controller: _controller,
+            keyboardType: number?TextInputType.number:TextInputType.name,
+            textAlign: TextAlign.left,
+            style: TextStyle(
+                fontSize: 20,
+                color: Colors.black,
+                fontWeight: FontWeight.w800
+            ),
+            decoration: InputDecoration(
+              border: InputBorder.none,
+              counterText: "",
+              hintText: str,
+              hintStyle: TextStyle(
+                fontSize: 14,
+                color: Colors.grey,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+  static Widget sees(double w,String s,Widget icon){
+    return Container(
+      width: w-30,
+      height: 50,
+      decoration: BoxDecoration(
+          color:Colors.white,
+          border: Border.all(
+            color: Colors.blue
+          ),
+          borderRadius: BorderRadius.circular(5)
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          icon,SizedBox(width: 7,),
+          Text(s,style: TextStyle(color: Colors.blue,fontSize: 18,fontWeight: FontWeight.w900),),
+        ],
+      ),
+    );
+  }
   static void message(BuildContext context,String str, bool green) async{
     await Flushbar(
       titleColor: Colors.white,

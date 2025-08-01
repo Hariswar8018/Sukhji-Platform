@@ -52,7 +52,16 @@ class _HomeState extends State<Navigation> {
       print(e);    }
   }
   void initState(){
+    ask();
     v();v1();g();
+  }
+
+  void ask() async {
+    try {
+      await FirebaseMessaging.instance.requestPermission();
+    }catch(e){
+      print(e);
+    }
   }
 
   v() async {
@@ -102,7 +111,7 @@ class _HomeState extends State<Navigation> {
   Widget build(BuildContext context) {
     double w=MediaQuery.of(context).size.width;
     String user=FirebaseAuth.instance.currentUser!.uid??"";
-    bool b=false;//((user=="ugEMcDH9jwQE4EDiKok0cSQvHB42")||(user=="jYDRg96GalQKuyZOrBOq3l3FdWr2"));
+    bool b= false;//((user=="ugEMcDH9jwQE4EDiKok0cSQvHB42")||(user=="jYDRg96GalQKuyZOrBOq3l3FdWr2"));
     return WillPopScope(
         onWillPop: () => _onWillPop(context),
         child:b? AdminNavigation() : sd(false));

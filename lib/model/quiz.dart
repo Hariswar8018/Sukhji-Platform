@@ -22,7 +22,15 @@ class QuizQuestion {
       'Timequiz':Timequiz
     };
   }
-
+  factory QuizQuestion.fromJsons(Map<String, dynamic> json, int timeQuiz) {
+    return QuizQuestion(
+      question: json['question'],
+      options: List<String>.from(json['options']),
+      correctOption: json['correctOption'],
+      id: DateTime.now().toString(),
+      Timequiz: timeQuiz,
+    );
+  }
   factory QuizQuestion.fromJson(Map<String, dynamic> map) {
     return QuizQuestion(
       question: map['question'] ?? 'Whats captal of India',

@@ -350,11 +350,6 @@ class _QuizScreenState extends State<QuizScreen> with WidgetsBindingObserver {
                     },
                   ),
                 ),
-                InkWell(
-                    onTap: (){
-                      _moveToNextQuestion(skipped: true);
-                    },
-                    child: Center(child: Send.see(w, "Skip Question", Icon(Icons.skip_next,color: Colors.white,)))),
                 SizedBox(height: 14,)
               ],
             );

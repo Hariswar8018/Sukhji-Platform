@@ -23,6 +23,8 @@ import 'package:ignou_bscg/quiz/home/small_card.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
+import '../game/all_games.dart';
+
 class Home2 extends StatefulWidget {
  Home2({super.key});
 
@@ -235,11 +237,12 @@ void initState(){
                   )
               ),
             ),
-            SizedBox(height: 20,),
+
+            SizedBox(height: 10,),
             Text("   Today's Quiz",style: TextStyle(fontWeight: FontWeight.w600),),
             Container(
               width: w,
-              height:h-430,
+              height:h-320,
               child: StreamBuilder(
                 stream: FirebaseFirestore.instance.collection('Quiz').snapshots(),
                 builder: (context, snapshot) {
@@ -252,13 +255,22 @@ void initState(){
                       if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                         return Center(child: Text('No data available for today.'));
                       }
-                      final todayDateString = DateTime.now().toString().split(' ')[0]; // Format: YYYY-MM-DD
+
+                      final now = DateTime.now();
+                      final today = DateTime(now.year, now.month, now.day);
+
                       final data = snapshot.data!.docs.where((doc) {
                         final id = doc['id'] ?? '';
-                        return id.contains(todayDateString);
+                        try {
+                          final quizDate = DateTime.parse(id); // assuming id is in yyyy-MM-dd
+                          final dateOnly = DateTime(quizDate.year, quizDate.month, quizDate.day);
+                          return dateOnly.isAtSameMomentAs(today) || dateOnly.isAfter(today);
+                        } catch (e) {
+                          return false;
+                        }
                       }).toList();
                       if (data.isEmpty) {
-                        return Center(child: Text('No data available for today.'));
+                        return Center(child: Text('No upcoming quizzes !'));
                       }
                       final list = data.map((e) => QuizTypeModel.fromJson(e.data())).toList();
                       return ListView.builder(

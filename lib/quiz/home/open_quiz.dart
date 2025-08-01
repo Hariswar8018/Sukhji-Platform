@@ -12,9 +12,13 @@ import 'package:ignou_bscg/quiz/home/instruction_conduction.dart';
 import 'package:ignou_bscg/quiz/home/scores.dart';
 import 'package:slide_countdown/slide_countdown.dart';
 
+import '../../ai/generate_Quiz.dart';
+import 'card/winner_card.dart';
+
 class OpenQuiz extends StatefulWidget {
   QuizTypeModel quiz;bool admin;
   int review;
+  //new quiiz
  OpenQuiz({super.key,required this.quiz,required this.admin,this.review=0});
   @override
   State<OpenQuiz> createState() => _OpenQuizState();
@@ -23,6 +27,8 @@ class QuizCountdown extends StatelessWidget {
   final String quizId; // Assume this is a datetime string like "2025-03-07 14:00:00"
 
   QuizCountdown({required this.quizId});
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +45,7 @@ class QuizCountdown extends StatelessWidget {
     if (timeDifference.isNegative) {
       return Center(
         child: Text(
-          "Quiz has already started!",
+          "Quiz/Game has already started!",
           style: TextStyle(fontSize: 18, color: Colors.red),
         ),
       );
@@ -59,14 +65,29 @@ class QuizCountdown extends StatelessWidget {
 }
 class _OpenQuizState extends State<OpenQuiz> {
 
-  void initState(){
 
+  void initState(){
+    fetch();
   }
+  fetch() async {
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('Quiz').doc(widget.quiz.id).collection("Quizes")
+        .get();
+
+    int documentCount = querySnapshot.docs.length;
+
+    print("Total documents: $documentCount");
+    setState(() {
+      goti=documentCount;
+    });
+  }
+
+  int goti = 0;
   @override
   Widget build(BuildContext context) {
     double w=MediaQuery.of(context).size.width;
     double h=MediaQuery.of(context).size.height;
-    return Scaffold(
+    return widget.review==0?Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -82,10 +103,65 @@ class _OpenQuizState extends State<OpenQuiz> {
           SizedBox(width: 10,),
         ],
       ),
-      floatingActionButton: widget.admin?FloatingActionButton(onPressed: (){
-        Navigator.push(context, MaterialPageRoute(builder: (context) => AddQuizScreen(id: widget.quiz.id,)));
-      },backgroundColor: Send.bg,child: Icon(Icons.add,color: Colors.white,),):SizedBox(),
+      floatingActionButton: widget.admin?Container(
+        width: w-30,height: 70,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            InkWell(
+                onTap: () async {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => GenerateQuiz(quiz: widget.quiz,)));
+                },
+                child: Center(child: Send.sees(w-100, "Generate QUIZ with AI",Icon(Icons.rocket_launch,color: Colors.blue,)))),
+            FloatingActionButton(onPressed: (){
+              Navigator.push(context, MaterialPageRoute(builder: (context) => AddQuizScreen(id: widget.quiz.id,)));
+            },backgroundColor: Send.bg,child: Icon(Icons.add,color: Colors.white,),),
+          ],
+        ),
+      ):SizedBox(),
       body:widget.admin?after(w,h):(!se()?after(w, h):before(h, w)),
+    ):Scaffold(
+      appBar: AppBar(
+        iconTheme: IconThemeData(color: Colors.white),
+        centerTitle: true,
+        title: Text("Leaderboard",style: TextStyle(fontWeight: FontWeight.w600,color: Colors.white),),
+        elevation: 0,backgroundColor: Color(0xffB815D0),
+        actions: [
+          IconButton(onPressed: (){
+            setState(() {
+              widget.review=0;
+            });
+          }, icon: Icon(Icons.question_answer,color: Colors.white,))
+        ],
+      ),
+      backgroundColor: Colors.white,
+      body: StreamBuilder(
+        stream: Fire.collection('Quiz')
+            .doc(widget.quiz.id)
+            .collection("UserScores")
+            .orderBy("score", descending: true) // Ensures highest score is first
+            .snapshots(),
+        builder: (context, snapshot) {
+          switch (snapshot.connectionState) {
+            case ConnectionState.waiting:
+            case ConnectionState.none:
+              return Center(child: CircularProgressIndicator());
+            case ConnectionState.active:
+            case ConnectionState.done:
+              final data = snapshot.data?.docs;
+              _listt = data
+                  ?.map((e) => df.UserScore.fromJson(e.data()))
+                  .toList() ??
+                  [];
+              return LeaderboardWidget(
+                scores: _listt,
+                isAdmin: widget.admin,
+                quizId: widget.quiz.id,
+              );
+
+          }
+        },
+      ),
     );
   }
   bool se() {
@@ -153,7 +229,7 @@ class _OpenQuizState extends State<OpenQuiz> {
                       ),
                       Padding(
                         padding:const EdgeInsets.only(left: 28.0,top: 2,right: 28),
-                        child: Text("${widget.quiz.questions.length} Questions    +${widget.quiz.marks} Correct   -${((widget.quiz.marks)*1/3).toStringAsFixed(1)} Incorrect"),
+                        child: Text("${goti} Questions    +${widget.quiz.marks} Correct   -${((widget.quiz.marks)*1/3).toStringAsFixed(1)} Incorrect"),
                       ),
                       Padding(
                         padding:const EdgeInsets.only(left: 28.0,top: 2,right: 28),
@@ -162,34 +238,44 @@ class _OpenQuizState extends State<OpenQuiz> {
                       Padding(
                         padding: const EdgeInsets.only(left: 10,right: 10,top: 18.0,bottom: 8),
                         child: Center(
-                          child: Container(
-                              width: w-23,
-                              height: 55,
-                              decoration: BoxDecoration(
-                                color: Send.bg,
-                                borderRadius: BorderRadius.only(
-                                  topLeft: Radius.circular(10),
-                                  // specify the radius for the top-left corner
-                                  topRight: Radius.circular(10),
-                                  bottomRight: Radius.circular(10),
-                                  bottomLeft: Radius.circular(10),
-                                  // specify the radius for the top-right corner
+                          child: InkWell(
+                            onTap: (){
+                              setState(() {
+                                widget.review=1;
+                              });
+                            },
+                            child: Container(
+                                width: w-23,
+                                height: 55,
+                                decoration: BoxDecoration(
+                                  color: Send.bg,
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(10),
+                                    // specify the radius for the top-left corner
+                                    topRight: Radius.circular(10),
+                                    bottomRight: Radius.circular(10),
+                                    bottomLeft: Radius.circular(10),
+                                    // specify the radius for the top-right corner
+                                  ),
                                 ),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.only(left: 8.0,right: 8),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                  children: [
-                                    f(w, 0),
-                                    f(w, 1),
-                                  ],
-                                ),
-                              )
+                                child: Padding(
+                                  padding: const EdgeInsets.only(left: 15.0,right: 15),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.leaderboard,color: Colors.white,),
+                                      SizedBox(width: 15,),
+                                      Text("View LeaderBoard for this Quiz",style: TextStyle(color: Colors.white),),
+                                      Spacer(),
+                                      Icon(Icons.arrow_forward_rounded,color: Colors.white,),
+                                    ],
+                                  ),
+                                )
+                            ),
                           ),
                         ),
                       ),
-                      widget.review==0?Container(
+                      Container(
                         width: w,
                         height: h-400,
                         child: StreamBuilder(
@@ -212,124 +298,6 @@ class _OpenQuizState extends State<OpenQuiz> {
                                     return ChatUserr(
                                       quiz: list[index], admin: widget.admin, quizid: widget.quiz.id,
                                     );
-                                  },
-                                );
-                            }
-                          },
-                        ),
-                      ):
-                      Container(
-                        width: w,
-                        height: h - 400,
-                        child: StreamBuilder(
-                          stream: Fire.collection('Quiz')
-                              .doc(widget.quiz.id)
-                              .collection("UserScores")
-                              .orderBy("score", descending: true) // Ensures highest score is first
-                              .snapshots(),
-                          builder: (context, snapshot) {
-                            switch (snapshot.connectionState) {
-                              case ConnectionState.waiting:
-                              case ConnectionState.none:
-                                return Center(child: CircularProgressIndicator());
-                              case ConnectionState.active:
-                              case ConnectionState.done:
-                                final data = snapshot.data?.docs;
-                                _listt = data
-                                    ?.map((e) => df.UserScore.fromJson(e.data()))
-                                    .toList() ??
-                                    [];
-                                return ListView.builder(
-                                  itemCount: _listt.length,
-                                  padding: EdgeInsets.only(top: 10),
-                                  physics: BouncingScrollPhysics(),
-                                  itemBuilder: (context, index) {
-                                    if (index == 0) {
-                                      return Container(
-                                        width: w-20,
-                                        height: 100,
-                                        padding: EdgeInsets.all(10),
-                                        margin: EdgeInsets.symmetric(vertical: 5, horizontal: 15),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.circular(15),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.yellow,
-                                              offset: Offset(0, 2),
-                                              blurRadius: 6,
-                                            ),
-                                          ],
-                                        ),
-                                        child: Row(
-                                          crossAxisAlignment: CrossAxisAlignment.center,
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Column(
-                                              mainAxisAlignment: MainAxisAlignment.center,
-                                              crossAxisAlignment: CrossAxisAlignment.center,
-                                              children: [
-                                                Text("# 1",style: TextStyle(fontWeight: FontWeight.w800),),
-                                                CircleAvatar(
-                                                  backgroundImage: NetworkImage(_listt[0].pic),
-                                                ),
-                                              ],
-                                            ),
-                                            SizedBox(width: 10,),
-                                            Column(
-                                              mainAxisAlignment: MainAxisAlignment.center,
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                Text("Name",style: TextStyle(fontWeight: FontWeight.w800),),
-                                                Text(formatTo17Words(_listt[0].name,12),style: TextStyle(fontWeight: FontWeight.w400),),
-                                              ],
-                                            ),
-                                            SizedBox(width: 15,),
-                                            Column(
-                                              mainAxisAlignment: MainAxisAlignment.center,
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                Text("District",style: TextStyle(fontWeight: FontWeight.w800),),
-                                                Text(formatTo17Words(_listt[0].address,10),style: TextStyle(fontWeight: FontWeight.w400),),
-                                              ],
-                                            ),
-                                            SizedBox(width: 15,),
-                                            Column(
-                                              mainAxisAlignment: MainAxisAlignment.center,
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                Text("Score",style: TextStyle(fontWeight: FontWeight.w800),),
-                                                Text(formatTo17Words(_listt[0].score.toStringAsFixed(1),4),style: TextStyle(fontWeight: FontWeight.w900,fontSize: 20,color: Colors.red),),
-                                              ],
-                                            ),
-                                           Spacer(),
-                                            InkWell(
-                                              onTap: (){
-                                                if(widget.admin){
-                                                  Navigator.push(context, MaterialPageRoute(
-                                                      builder: (context) =>Pay_Win(quiz_id: widget.quiz.id, userid: _listt[0].id,
-                                                        username: _listt[0].name,)));
-                                                }
-                                              },
-                                              child: Column(
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                crossAxisAlignment: CrossAxisAlignment.center,
-                                                children: [
-                                                  widget.admin?Icon(Icons.edit,color: Colors.green,):Text("Win",style: TextStyle(fontWeight: FontWeight.w800),),
-                                                  Text("₹"+_listt[0].prizewin,style: TextStyle(fontWeight: FontWeight.w900,fontSize: 20),),
-                                                ],
-                                              ),
-                                            ),
-                                            SizedBox(width: 10,),
-                                          ],
-                                        ),
-                                      );
-                                    } else {
-                                      return ScoresCard(
-                                        quiz: _listt[index],isadmin: widget.admin,quid: widget.quiz.id,
-                                        indexx: index,
-                                      );
-                                    }
                                   },
                                 );
                             }
